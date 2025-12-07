@@ -1,0 +1,44 @@
+---
+import type { GetStaticPaths } from "astro";
+import BaseLayout from "@/layouts/base.astro";
+import { SITE } from "@/lib/config";
+import Pagination from "@/components/shared/pagination.astro";
+import { getEntry } from "astro:content";
+import NewsCard from "@/components/cards/newsCard.astro";
+import { articlesHandler } from "@/lib/handlers/articles";
+
+const articles = articlesHandler.allArticles();
+const pageSize = SITE.postsPerPage;
+const currentPage = 1;
+const totalPages = Math.ceil(articles.length / pageSize);
+const paginatedArticles = articles.slice(0, pageSize);
+
+const entry = await getEntry("views", "home");
+
+if (!entry) {
+  return Astro.redirect("/404");
+}
+---
+
+<BaseLayout entry={entry}>
+  <section class="container max-w-6xl py-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {
+        paginatedArticles.map((article, index) => (
+          <NewsCard article={article} index={index} />
+        ))
+      }
+    </div>
+    {totalPages > 1 && (
+      <Pagination
+        length={totalPages}
+        currentUrl="/"
+        currentPage={currentPage}
+        baseUrl=""
+        prevUrl={null}
+        nextUrl={totalPages > 1 ? "/page/2" : null}
+        lastUrl={`/page/${totalPages}`}
+      />
+    )}
+  </section>
+</BaseLayout>
